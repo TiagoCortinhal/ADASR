@@ -4,7 +4,6 @@ import cv2
 import numpy
 import os
 from skimage.measure import compare_ssim as ssim
-
 from options import args
 
 ##TODO clean code, automatize things

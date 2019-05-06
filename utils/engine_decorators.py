@@ -8,6 +8,7 @@ from ignite.metrics import RunningAverage
 
 from utils.options import args
 
+
 PRINT_FREQ = 200
 REAL_IMG_FNAME = '{:04d}_{:04d}_hr.png'
 FAKE_IMG_FNAME = '{:04d}_{:04d}_pred.png'
@@ -18,7 +19,7 @@ PLOT_FNAME = 'plot.svg'
 CKPT_PREFIX = 'networks'
 
 
-def start(trainer, SR, D, vgg, loader, schedulerD, schedulerG, optimizerD, optimizerG,resume_epoch,resume_iter):
+def attach_decorators(trainer, SR, D, vgg, loader, schedulerD, schedulerG, optimizerD, optimizerG, resume_epoch, resume_iter):
 
     timer = Timer(average=True)
 

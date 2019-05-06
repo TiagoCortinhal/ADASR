@@ -1,9 +1,8 @@
-from trainer import init
-from utils.engine_decorators import start
-from utils.options import args
-import torch
 import numpy as np
+import torch
+
 from utils.eval import eval
+from utils.options import args
 
 ##TODO test this with RSx2
 ##TODO patch encoder adversarial
@@ -26,6 +25,7 @@ from utils.eval import eval
 ##TODO LR DECAY ?? ---> GRADIENT PENALTY
 
 
+##TODO manage train/eval, perhaps new decorated function to perform eval at end of each epoch?
 if __name__ == '__main__':
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
@@ -33,9 +33,8 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = False
     np.random.seed(args.seed)
 
-    ##TODO eww
-    #trainer, SR, D, vgg, loader, schedulerD, schedulerG, optimizerD, optimizerG, resume_epoch, resume_inter = init()
-    #start(trainer, SR, D, vgg, loader, schedulerD, schedulerG, optimizerD, optimizerG, resume_epoch, resume_inter)
-    #trainer.run(loader, args.epochs)
+    # objects = init()
+    # attach_decorators(**objects)
+    # objects['trainer'].run(objects['loader'], args.epochs)
 
     eval()

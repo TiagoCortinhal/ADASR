@@ -6,6 +6,8 @@ from PIL import Image
 from utils.options import args
 
 
+##TODO merge datasets
+
 class DatasetManager(Dataset):
 
     def __init__(self, training=True,factor=1):
