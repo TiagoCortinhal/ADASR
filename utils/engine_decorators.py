@@ -124,8 +124,7 @@ def start(trainer, SR, D, vgg, loader, schedulerD, schedulerG, optimizerD, optim
                 'optim_D_{}'.format(engine.state.iteration): optimizerD,
                 'optim_G_{}'.format(engine.state.iteration): optimizerG,
                 'sched_D_{}'.format(engine.state.iteration): schedulerD,
-                'sched_G_{}'.format(engine.state.iteration): schedulerG,
-                'timer_{}'.format(engine.state.iteration): timer
+                'sched_G_{}'.format(engine.state.iteration): schedulerG
             })
 
         else:

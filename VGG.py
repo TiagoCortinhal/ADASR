@@ -3,6 +3,9 @@ import torch.nn as nn
 import torchvision.models as models
 
 
+
+##TODO compare style vs content ?
+##TODO can we assume GAN will focus on content so it will be better to focus on style with VGG? or is it the other way around?
 class VGG(nn.Module):
     def __init__(self):
         super(VGG, self).__init__()

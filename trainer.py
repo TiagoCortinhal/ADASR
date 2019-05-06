@@ -96,6 +96,8 @@ def init():
         }
 
     trainer = Engine(step)
+
+    ##TODO cleaner loader, perhaps a method to make it easier to read
     res_epoch = 0
     res_iter = 0
     if args.c:

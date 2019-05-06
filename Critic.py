@@ -1,6 +1,5 @@
 from torch import nn
 
-##TODO see4c1 <- host cluster
 
 class Critic(nn.Module):
     def __init__(self):
