@@ -1,6 +1,8 @@
 import numpy as np
 import torch
-
+import os
+from trainer import init
+from utils.engine_decorators import attach_decorators
 from utils.eval import eval
 from utils.options import args
 
@@ -27,14 +29,19 @@ from utils.options import args
 
 ##TODO manage train/eval, perhaps new decorated function to perform eval at end of each epoch?
 if __name__ == '__main__':
+
+    ##QARMA Cluster returns "x1\nx2" where x1 and x2 are the id of the cuda devices for your job.
+    ## Pytorch expects "x1,x2" otherwise it will only pick the x1.
+    ##This corrects this problem
+    os.environ["CUDA_VISIBLE_DEVICES"] = os.environ["CUDA_VISIBLE_DEVICES"].replace("\n", ",").strip()
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     np.random.seed(args.seed)
 
-    # objects = init()
-    # attach_decorators(**objects)
-    # objects['trainer'].run(objects['loader'], args.epochs)
+    objects = init()
+    attach_decorators(**objects)
+    objects['trainer'].run(objects['loader'], args.epochs)
 
-    eval()
+    #eval()
