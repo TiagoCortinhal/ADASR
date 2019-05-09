@@ -5,7 +5,7 @@ from ignite.contrib.handlers import ProgressBar
 from ignite.engine import Events
 from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage
-
+import signal
 from utils.options import args
 
 
@@ -41,7 +41,11 @@ def attach_decorators(trainer, SR, D, vgg, loader, schedulerD, schedulerG, optim
                               to_save={
                                   'SR': SR,
                                   'D': D,
-                                  'VGG': vgg
+                                  'VGG': vgg,
+                                  'optim_D': optimizerD,
+                                  'optim_G': optimizerG,
+                                  'sched_D': schedulerD,
+                                  'sched_G': schedulerG
                               })
 
     timer.attach(trainer, start=Events.EPOCH_STARTED, resume=Events.ITERATION_STARTED,
@@ -135,3 +139,7 @@ def attach_decorators(trainer, SR, D, vgg, loader, schedulerD, schedulerG, optim
     def resume_training(engine):
         engine.state.iteration = resume_iter
         engine.state.epoch = resume_epoch
+
+    def OAR_shutdown():
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGUSR2, OAR_shutdown)

@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import StepLR
 from Critic import Critic
 from EDSR import EDSR
 from VGG import VGG
-from utils.DatasetManager import DatasetManager2 as DatasetManager
+from utils.DatasetManager import DatasetManager as DatasetManager
 from utils.options import args
 from utils.utils import calculate_gradient_penalty
 
@@ -19,17 +19,47 @@ def init():
     SR = EDSR(2, 16)
     D = Critic()
     vgg = VGG()
-    vgg = torch.nn.DataParallel(vgg, device_ids=[0, 1]).cuda()
-    SR = torch.nn.DataParallel(SR, device_ids=[0, 1]).cuda()
-    D = torch.nn.DataParallel(D, device_ids=[0, 1]).cuda()
 
-    dataset = DatasetManager()
-    criterion = nn.MSELoss()
     optimizerG = optim.Adam(SR.parameters(), lr=args.learning_rate, betas=(0, 0.9))
     optimizerD = optim.Adam(D.parameters(), lr=args.learning_rate, betas=(0, 0.9))
 
     schedulerD = StepLR(optimizerG, step_size=2, gamma=0.01)
     schedulerG = StepLR(optimizerG, step_size=2, gamma=0.01)
+
+    ##TODO cleaner loader, perhaps a method to make it easier to read
+    res_epoch = 0
+    res_iter = 0
+    if args.c:
+        files = os.listdir(args.output_dir)
+        files = [name for name in files if name.endswith('.pth')]
+        if len(files) > 0:
+            ep = [int(re.search('.(\d*)_(\d)\.pth', ep).group(2)) for ep in files]
+            iter = [int(re.search('.(\d*)_(\d)\.pth', ep).group(1)) for ep in files]
+            SR = torch.load(args.output_dir + '/training_netG_{}_{}.pth'.format(max(iter), max(ep)))
+            D = torch.load(args.output_dir + '/training_netD_{}_{}.pth'.format(max(iter), max(ep)))
+            schedulerD = torch.load(args.output_dir + '/training_sched_D_{}_{}.pth'.format(max(iter), max(ep)))
+            schedulerG = torch.load(args.output_dir + '/training_sched_G_{}_{}.pth'.format(max(iter), max(ep)))
+            optimizerD = torch.load(args.output_dir + '/training_optim_D_{}_{}.pth'.format(max(iter), max(ep)))
+            optimizerG = torch.load(args.output_dir + '/training_optim_G_{}_{}.pth'.format(max(iter), max(ep)))
+            res_epoch = max(ep) - 1
+            res_iter = max(iter) - 1
+
+
+    vgg = torch.nn.DataParallel(vgg, device_ids=[0,1]).cuda()
+    SR = torch.nn.DataParallel(SR, device_ids=[0,1]).cuda()
+    D = torch.nn.DataParallel(D, device_ids=[0,1]).cuda()
+
+    if args.saved_SR:
+        SR.load_state_dict(torch.load(args.saved_SR))
+
+    if args.saved_D:
+        D.load_state_dict(torch.load(args.saved_D))
+
+    if args.saved_vgg:
+        vgg.load_state_dict(torch.load(args.saved_vgg))
+
+    dataset = DatasetManager()
+    criterion = nn.MSELoss()
 
     loader = data.DataLoader(dataset, batch_size=args.batch_size,
                              shuffle=True,
@@ -95,31 +125,7 @@ def init():
 
     trainer = Engine(step)
 
-    ##TODO cleaner loader, perhaps a method to make it easier to read
-    res_epoch = 0
-    res_iter = 0
-    if args.c:
-        files = os.listdir(args.output_dir)
-        files = [name for name in files if name.endswith('.pth')]
-        if len(files) > 0:
-            ep = [int(re.search('.(\d*)_(\d)\.pth', ep).group(2)) for ep in files]
-            iter = [int(re.search('.(\d*)_(\d)\.pth', ep).group(1)) for ep in files]
-            SR = torch.load(args.output_dir + '/training_netG_{}_{}.pth'.format(max(iter), max(ep)))
-            D = torch.load(args.output_dir + '/training_netD_{}_{}.pth'.format(max(iter), max(ep)))
-            schedulerD = torch.load(args.output_dir + '/training_sched_D_{}_{}.pth'.format(max(iter), max(ep)))
-            schedulerG = torch.load(args.output_dir + '/training_sched_G_{}_{}.pth'.format(max(iter), max(ep)))
-            optimizerD = torch.load(args.output_dir + '/training_optim_D_{}_{}.pth'.format(max(iter), max(ep)))
-            optimizerG = torch.load(args.output_dir + '/training_optim_G_{}_{}.pth'.format(max(iter), max(ep)))
-            res_epoch = max(ep) - 1
-            res_iter = max(iter) - 1
-    if args.saved_SR:
-        SR = torch.load(args.saved_SR)
 
-    if args.saved_D:
-        D = torch.load(args.saved_D)
-
-    if args.saved_vgg:
-        vgg = torch.load(args.saved_vgg)
 
     ret_objs = dict()
     ret_objs['trainer'] = trainer
