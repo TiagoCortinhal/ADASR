@@ -110,7 +110,7 @@ def init(DEVICES):
         tgt_features = feature_extractor(x_target.cuda())
         xsource_sup = feature_extractor(x_source_sup.cuda())
         xtarget_sup = feature_extractor(x_target_sup.cuda())
-        d_loss = - sr_classif_critic(SR_src_).mean() + sr_classif_critic(y_source.cuda()).mean()
+        d_loss = - sr_classif_critic(SR_src).mean() + sr_classif_critic(y_source.cuda()).mean()
         vgg_fake = vgg(SR_src)
         vgg_real = vgg(y_source.detach())
         vgg_loss = 0.01 * mse(vgg_fake, vgg_real) + d_loss + \
