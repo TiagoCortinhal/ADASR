@@ -2,7 +2,7 @@ import h5py
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-
+from utils.options import args
 LAMBDA = .1
 PRINT_FREQ = 20
 LOGS_FNAME = 'logs.tsv'
@@ -41,9 +41,14 @@ class DatasetManager(Dataset):
         else:
             import os
             self.y_dir = 'hr/'
-            self.root = '../domain_2_test/'
-            self.y = os.listdir(self.root + self.y_dir)
-            self.y.sort()
+            if args.train_type == 'source':
+                self.root = '../domain_1_test/'
+                self.y = os.listdir(self.root + self.y_dir)
+                self.y.sort()
+            elif args.train_type == 'target':
+                self.root = '../domain_2_test/'
+                self.y = os.listdir(self.root + self.y_dir)
+                self.y.sort()
 
     def __getitem__(self, index):
         if self.training:

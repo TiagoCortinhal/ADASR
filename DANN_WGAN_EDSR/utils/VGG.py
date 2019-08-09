@@ -23,9 +23,7 @@ class VGG(nn.Module):
         modules = [m for m in vgg_features]
         self.vgg = nn.Sequential(*modules[:8])
 
-        vgg_mean = (0.485, 0.456, 0.406)
-        vgg_std = (0.229 * 1, 0.224 * 1, 0.225 * 1)
-        self.sub_mean = MeanShift(1, vgg_mean, vgg_std)
+        self.sub_mean = MeanShift(1, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 
     def forward(self, x):
         x = self.sub_mean(x)

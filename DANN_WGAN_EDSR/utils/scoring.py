@@ -30,7 +30,6 @@ def scoring():
         g = cv2.imread(eval + g)
         g = cv2.resize(g, (r.shape[1], r.shape[0]))
 
-        ##TODO fix this
         cv2.imwrite(args.output_dir + '/' + str(args.eval_epoch) + "_" + str(args.factor) + '/resized_' + name, g)
 
         psnr_ = psnr(r, g)
@@ -41,3 +40,5 @@ def scoring():
     fid_score = fid((hr, eval), dims=2048, cuda='', batch_size=1)
     log.write("\nFID:\t{}\n".format(fid_score))
     log.write('AVG_PNSR:{}\tAVG_SSIM:{}\n'.format(psnr_sum / len(generated), ssim_sum / len(generated)))
+    print("\nFID:\t{}\n".format(fid_score))
+    print('AVG_PNSR:{}\tAVG_SSIM:{}\n'.format(psnr_sum / len(generated), ssim_sum / len(generated)))

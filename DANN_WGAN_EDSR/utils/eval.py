@@ -54,7 +54,7 @@ def eval():
 
 
 if __name__ == '__main__':
-    from scoring import scoring
+    from utils.scoring import scoring
 
     eval()
     scoring()

@@ -29,9 +29,9 @@ def attach_decorators(trainer, SR, feature_extractor,
     timer = Timer(average=True)
 
     checkpoint_handler = ModelCheckpoint(args.output_dir + '/checkpoints/domain_adaptation_training/', 'training',
-                                         save_interval=1, n_saved=300, require_empty=False)
+                                         save_interval=1, n_saved=300, require_empty=False,iteration=args.epoch_c)
 
-    monitoring_metrics = ['tgt_loss', 'src_loss', 'vgg_loss', 'loss', 'GP', 'd_loss', 'down_loss', 'up_loss']
+    monitoring_metrics = ['tgt_loss', 'src_loss', 'vgg_loss', 'loss', 'GP', 'd_loss', 'down_loss', 'up_loss','dloss_1']
     RunningAverage(alpha=0.98, output_transform=lambda x: x['tgt_loss']).attach(trainer, 'tgt_loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['src_loss']).attach(trainer, 'src_loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['vgg_loss']).attach(trainer, 'vgg_loss')
@@ -40,6 +40,7 @@ def attach_decorators(trainer, SR, feature_extractor,
     RunningAverage(alpha=0.98, output_transform=lambda x: x['d_loss']).attach(trainer, 'd_loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['down_loss']).attach(trainer, 'down_loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['up_loss']).attach(trainer, 'up_loss')
+    RunningAverage(alpha=0.98, output_transform=lambda x: x['dloss_1']).attach(trainer, 'dloss_1')
 
     pbar = ProgressBar()
     pbar.attach(trainer, metric_names=monitoring_metrics)
@@ -86,7 +87,7 @@ def attach_decorators(trainer, SR, feature_extractor,
                 if not os.path.exists(args.output_dir + '/imgs/domain_adaptation_training/'):
                     os.makedirs(args.output_dir + '/imgs/domain_adaptation_training/')
             px, py, px2, py2, px_up, _, px2_up, _ = engine.state.batch
-            img = SR(feature_extractor(px2.cuda(), domain='target'), domain='target')
+            img = SR(feature_extractor(px2.cuda()))
             path = os.path.join(args.output_dir + '/imgs/domain_adaptation_training/',
                                 predtgt_IMG_FNAME.format(engine.state.epoch, engine.state.iteration))
             vutils.save_image(img, path)
@@ -102,7 +103,7 @@ def attach_decorators(trainer, SR, feature_extractor,
             path = os.path.join(args.output_dir + '/imgs/domain_adaptation_training/',
                                 sourceY_IMG_FNAME.format(engine.state.epoch, engine.state.iteration))
             vutils.save_image(py, path)
-            img = SR(feature_extractor(px.cuda(), domain='source'), domain='source')
+            img = SR(feature_extractor(px.cuda()))
             path = os.path.join(args.output_dir + '/imgs/domain_adaptation_training/',
                                 predsrc_IMG_FNAME.format(engine.state.epoch, engine.state.iteration))
             vutils.save_image(img, path)
@@ -121,7 +122,10 @@ def attach_decorators(trainer, SR, feature_extractor,
             checkpoint_handler(engine, {
                 'feature_extractor_{}'.format(engine.state.iteration): feature_extractor,
                 'SR_{}'.format(engine.state.iteration): SR,
-                'ADAM_{}'.format(engine.state.iteration): optimizer
+                'ADAM_{}'.format(engine.state.iteration): optimizer,
+                'DOMAIN_D_{}'.format(engine.state.iteration): domain_classifier,
+                'RES_D_{}'.format(engine.state.iteration): resolution_classifier,
+                'SR_D_{}'.format(engine.state.iteration): sr_classif_critic
             })
 
         else:
