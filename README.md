@@ -1,4 +1,4 @@
-# SR_GAN
+# ADASR
 Internship Project: Unsupervised Super Resolution With GAN 
 
 This projects aims to tackle some issues with Super Resolution namely the possible lack of training data. 
