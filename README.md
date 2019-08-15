@@ -19,10 +19,10 @@ Other datasets can be used and tested, and it is easy to change the dataloader t
 Results coming soon.
 
 
-##References 
+# References 
 
-[EDSR](https://arxiv.org/pdf/1707.02921.pdf)
-[DANN](https://arxiv.org/pdf/1505.07818.pdf)
-[WGAN](https://arxiv.org/pdf/1701.07875.pdf)
-[ADDA](https://arxiv.org/pdf/1702.05464.pdf)
+ * [EDSR](https://arxiv.org/pdf/1707.02921.pdf)
+ * [DANN](https://arxiv.org/pdf/1505.07818.pdf)
+ * [WGAN](https://arxiv.org/pdf/1701.07875.pdf)
+ * [ADDA](https://arxiv.org/pdf/1702.05464.pdf)
 
