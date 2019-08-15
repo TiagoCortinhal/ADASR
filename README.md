@@ -25,4 +25,5 @@ Results coming soon.
  * [DANN](https://arxiv.org/pdf/1505.07818.pdf) - [code](https://github.com/CuthbertCai/pytorch_DANN)
  * [WGAN](https://arxiv.org/pdf/1701.07875.pdf) - [one of many repos consulted](https://github.com/caogang/wgan-gp/blob/master/gan_toy.py)
  * [ADDA](https://arxiv.org/pdf/1702.05464.pdf) - [one of many implementations](https://github.com/corenel/pytorch-adda)
-
+ * [NTIRE](http://www.vision.ee.ethz.ch/ntire19/)
+ * [Celeba-HQ](https://github.com/nperraud/download-celebA-HQ)
