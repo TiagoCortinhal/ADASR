@@ -1,5 +1,6 @@
-from torch import nn
 import torch
+from torch import nn
+
 
 class GradReverse(torch.autograd.Function):
     """
@@ -32,7 +33,6 @@ class DomainCritic(nn.Module):
             nn.InstanceNorm2d(256, affine=True),
             nn.LeakyReLU(0.2),
 
-
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=2, padding=1, bias=False),
             nn.InstanceNorm2d(512, affine=True),
             nn.LeakyReLU(0.2),
@@ -47,9 +47,9 @@ class DomainCritic(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x,constant):
+    def forward(self, x, constant):
         x = GradReverse.grad_reverse(x, constant)
         x = self.main_module(x)
         res = self.output(x)
-        res = res.view(res.size()[0],-1)
+        res = res.view(res.size()[0], -1)
         return res

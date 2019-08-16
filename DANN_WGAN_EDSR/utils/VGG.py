@@ -3,7 +3,6 @@ import torch.nn as nn
 import torchvision.models as models
 
 
-###TARGET:tensor([0.4484, 0.4374, 0.4044]) SOURCE:(0.4488, 0.4371, 0.4040)
 class MeanShift(nn.Conv2d):
     def __init__(
             self, rgb_range, rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1.0, 1.0, 1.0), sign=-1):

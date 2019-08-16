@@ -2,7 +2,6 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-
 parser.add_argument('--n_workers',
                     type=int, default=10,
                     help='number of data loading workers')
@@ -65,8 +64,6 @@ parser.add_argument('--gamma', type=int, default=10)
 
 parser.add_argument('--train-type', default='dann')
 
-parser.add_argument('--epoch-c',type=int, default=0)
-
-
+parser.add_argument('--epoch-c', type=int, default=0)
 
 args = parser.parse_args()

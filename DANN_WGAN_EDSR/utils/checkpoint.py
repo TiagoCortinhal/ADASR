@@ -10,6 +10,8 @@ import torch
 Model checkpoint from Ignite isn't suited for cases where we need to continue training due to 
 the lack of control of the file name
 """""
+
+
 class ModelCheckpoint(object):
     """ ModelCheckpoint handler can be used to periodically save objects to disk.
 
@@ -87,7 +89,7 @@ class ModelCheckpoint(object):
                  n_saved=1,
                  atomic=True, require_empty=True,
                  create_dir=True,
-                 save_as_state_dict=True,iteration=0):
+                 save_as_state_dict=True, iteration=0):
 
         self._dirname = os.path.expanduser(dirname)
         self._fname_prefix = filename_prefix

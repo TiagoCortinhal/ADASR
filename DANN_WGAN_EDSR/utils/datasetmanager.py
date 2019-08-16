@@ -2,7 +2,9 @@ import h5py
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
+
 from utils.options import args
+
 LAMBDA = .1
 PRINT_FREQ = 20
 LOGS_FNAME = 'logs.tsv'

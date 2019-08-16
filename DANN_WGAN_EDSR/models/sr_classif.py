@@ -13,7 +13,6 @@ class SrCritic(nn.Module):
             nn.InstanceNorm2d(256, affine=True),
             nn.LeakyReLU(0.2),
 
-
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=2, padding=1, bias=False),
             nn.InstanceNorm2d(512, affine=True),
             nn.LeakyReLU(0.2),

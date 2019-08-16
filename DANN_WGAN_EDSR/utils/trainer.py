@@ -43,8 +43,7 @@ def init(DEVICES):
                             {'params': sr_classif_critic.parameters()},
                             {'params': domain_classifier.parameters()},
                             {'params': resolution_classifier.parameters()},
-                            {'params': SR.parameters()}],lr=args.learning_rate,betas=(0, 0.9))
-
+                            {'params': SR.parameters()}], lr=args.learning_rate, betas=(0, 0.9))
 
     dataset = DatasetManager()
     loader = data.DataLoader(dataset, batch_size=args.batch_size,
@@ -99,8 +98,8 @@ def init(DEVICES):
         sr_loss = vgg_loss + tv_loss
 
         # Domain loss
-        tgt_pred = domain_classifier(torch.cat((tgt_features, xtarget_sup), dim=0),constant)
-        src_pred = domain_classifier(torch.cat((src_features, xsource_sup), dim=0),constant)
+        tgt_pred = domain_classifier(torch.cat((tgt_features, xtarget_sup), dim=0), constant)
+        src_pred = domain_classifier(torch.cat((src_features, xsource_sup), dim=0), constant)
         tgt_loss = domain_criterion(tgt_pred, torch.zeros_like(tgt_pred))
         src_loss = domain_criterion(src_pred, torch.ones_like(src_pred))
         domain_loss = args.theta * (tgt_loss + src_loss)
@@ -108,8 +107,8 @@ def init(DEVICES):
         # Resolution Loss
         batch_res_sup = torch.cat((xsource_sup, xtarget_sup), dim=0)
         batch_res_down = torch.cat((tgt_features, src_features), dim=0)
-        down_pred = resolution_classifier(batch_res_down,constant)
-        up_pred = resolution_classifier(batch_res_sup,constant)
+        down_pred = resolution_classifier(batch_res_down, constant)
+        up_pred = resolution_classifier(batch_res_sup, constant)
         down_loss = domain_criterion(down_pred, torch.zeros_like(down_pred))
         up_loss = domain_criterion(up_pred, torch.ones_like(up_pred))
         res_loss = args.theta * (down_loss + up_loss)
@@ -125,7 +124,7 @@ def init(DEVICES):
                 'dloss_real': dloss_real.item(),
                 'dloss_fake': dloss_fake.item(),
                 'GP': gp.item(),
-                #'g_loss': g_loss.item(),
+                # 'g_loss': g_loss.item(),
                 'res_down_loss': down_loss.item(),
                 'res_up_loss': up_loss.item(),
                 'vgg_loss': vgg_loss.item(),
@@ -141,11 +140,11 @@ def init(DEVICES):
     ret_objs['domain_classifier'] = domain_classifier
     ret_objs['resolution_classifier'] = resolution_classifier
     ret_objs['sr_classif_critic'] = sr_classif_critic
-    #ret_objs['optim_feature'] = optim_feature
-    #ret_objs['optim_domain_classif'] = optim_domain_classif
-    #ret_objs['optim_res_classif'] = optim_res_classif
+    # ret_objs['optim_feature'] = optim_feature
+    # ret_objs['optim_domain_classif'] = optim_domain_classif
+    # ret_objs['optim_res_classif'] = optim_res_classif
     ret_objs['optim'] = optimizer
-    #ret_objs['optim_sr_critic'] = optim_sr_critic
+    # ret_objs['optim_sr_critic'] = optim_sr_critic
     ret_objs['loader'] = loader
 
     return ret_objs

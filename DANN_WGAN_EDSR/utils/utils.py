@@ -1,24 +1,27 @@
+import math
+
 import torch
 from torch import nn
 from torch.autograd import Variable
+
 from utils.options import args
-import math
+
 LAMBDA = 10
 
 
 class MeanShift(nn.Conv2d):
     def __init__(
-        self, rgb_range,
-        rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1,1,1), sign=-1):
-
+            self, rgb_range,
+            rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1, 1, 1), sign=-1):
         super(MeanShift, self).__init__(3, 3, kernel_size=1)
         std = torch.Tensor(rgb_std)
         self.weight.data = torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)
         self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean) / std
         self.requires_grad = False
 
-def conv(ni, nf, kernel, bias=True, init=False,stride=1,group=1,dilatation=1):
-    c = nn.Conv2d(ni, nf, kernel, padding=kernel // 2, bias=bias,stride=stride,groups=group,dilation=dilatation)
+
+def conv(ni, nf, kernel, bias=True, init=False, stride=1, group=1, dilatation=1):
+    c = nn.Conv2d(ni, nf, kernel, padding=kernel // 2, bias=bias, stride=stride, groups=group, dilation=dilatation)
     if init:
         kernel = icnr(c.weight, scale=2)
         c.weight.data.copy_(kernel)
@@ -76,7 +79,6 @@ def calculate_gradient_penalty(D, real_images, fake_images):
     gradients = gradients.view(gradients.size(0), -1)
     gradients_norm = torch.sqrt(torch.sum(gradients ** 2, dim=1) + 1e-12)
     return LAMBDA * ((gradients_norm - 1) ** 2).mean()
-
 
 
 class ResBlock(nn.Module):

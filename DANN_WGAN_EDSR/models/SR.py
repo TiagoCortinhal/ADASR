@@ -1,14 +1,14 @@
 from torch import nn
-from utils.utils import conv
+
+from utils.utils import MeanShift
 from utils.utils import ResBlock
 from utils.utils import Upsampling
-from utils.utils import MeanShift
+from utils.utils import conv
 
 
 class EDSR(nn.Module):
-    def __init__(self, scale, res, conv=conv,mean=(0.4488, 0.4371, 0.4040)):
+    def __init__(self, scale, res, conv=conv, mean=(0.4488, 0.4371, 0.4040)):
         super(EDSR, self).__init__()
-
 
         self.scale = scale
         self.res = res

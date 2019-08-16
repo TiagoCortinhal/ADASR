@@ -1,13 +1,15 @@
+import os
+
 import numpy as np
 import torch
-import os
-from utils.trainer import init
-from utils.engine_decorators import attach_decorators
-from utils.options import args
-from utils.eval import eval
-from utils.scoring import scoring
-DEVICES = [0, 1]
 
+from utils.engine_decorators import attach_decorators
+from utils.eval import eval
+from utils.options import args
+from utils.scoring import scoring
+from utils.trainer import init
+
+DEVICES = [0, 1]
 
 if __name__ == "__main__":
     if args.eval_epoch != 0:
