@@ -59,7 +59,7 @@ parser.add_argument('--eval', action='store_true')
 
 parser.add_argument('--eval-epoch', type=int, default=0)
 
-parser.add_argument('--theta', type=int, default=5)
+parser.add_argument('--theta', type=int, default=1)
 
 parser.add_argument('--gamma', type=int, default=10)
 

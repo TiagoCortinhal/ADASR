@@ -39,17 +39,12 @@ def init(DEVICES):
     SR = torch.nn.DataParallel(SR, device_ids=DEVICES).cuda()
     vgg = torch.nn.DataParallel(vgg, device_ids=DEVICES).cuda()
 
-    # optimizer = optim.Adam([{'params': feature_extractor.parameters()},
-    #                         {'params': sr_classif_critic.parameters()},
-    #                         {'params': domain_classifier.parameters()},
-    #                         {'params': resolution_classifier.parameters()},
-    #                         {'params': SR.parameters()}], lr=args.learning_rate, betas=(0, 0.9))
+    optimizer = optim.Adam([{'params': feature_extractor.parameters()},
+                            {'params': sr_classif_critic.parameters()},
+                            {'params': domain_classifier.parameters()},
+                            {'params': resolution_classifier.parameters()},
+                            {'params': SR.parameters()}],lr=args.learning_rate,betas=(0, 0.9))
 
-    optimizer = optim.Adam(feature_extractor.parameters(),lr=args.learning_rate)
-    optimizer2 = optim.Adam(sr_classif_critic.parameters(),lr=args.learning_rate, betas=(0, 0.9))
-    optimizer3 = optim.Adam(domain_classifier.parameters(), lr=args.learning_rate)
-    optimizer4 = optim.Adam(resolution_classifier.parameters(), lr=args.learning_rate)
-    optimizer5 = optim.Adam(SR.parameters(), lr=args.learning_rate)
 
     dataset = DatasetManager()
     loader = data.DataLoader(dataset, batch_size=args.batch_size,
@@ -58,102 +53,86 @@ def init(DEVICES):
     mse = nn.MSELoss().cuda()
     domain_criterion = nn.BCELoss().cuda()
     tvloss = TVLoss().cuda()
+    total_steps = args.epochs * len(loader)
 
     def step(engine, batch):
         x_source, y_source, x_target, y_target, x_source_sup, _, x_target_sup, _ = batch
-        # start_steps = (engine.state.epoch - 1) * len(loader)
-        # total_steps = args.epochs * len(loader)
 
-        # p = float(engine.state.iteration + start_steps) / total_steps
-        # constant = 2. / (1. + np.exp(-args.gamma * p)) - 1
-        #
-        # for param_group in optimizer.param_groups:
-        #     param_group['lr'] = args.learning_rate / (1. + 10 * p) ** 0.75
+        p = float(engine.state.iteration) / total_steps
+        constant = 2. / (1. + np.exp(-args.gamma * p)) - 1
 
-
-        optimizer2.zero_grad()
-
-
-        for p in sr_classif_critic.parameters():
-            p.requires_grad = True
-
-        for p in feature_extractor.parameters():
-            p.requires_grad = False
-
-        ##SR loss
-        src_features = feature_extractor(x_source.cuda()).detach()
-        SR_src = SR(src_features)
-        SR_src_ = SR_src.detach()
-
-        dloss_real = sr_classif_critic(y_source.cuda()).mean()
-
-        dloss_fake = sr_classif_critic(SR_src_).mean()
-
-        gp = calculate_gradient_penalty(sr_classif_critic, y_source.cuda().data, SR_src_.data)
-
-        d_loss1 = dloss_fake - dloss_real + gp
-        d_loss1.backward()
-        optimizer2.step()
-
-        for p in sr_classif_critic.parameters():
-            p.requires_grad = False
-
-        for p in feature_extractor.parameters():
-            p.requires_grad = True
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = args.learning_rate / (1. + args.gamma * p) ** 0.75
 
         optimizer.zero_grad()
-        optimizer3.zero_grad()
-        optimizer4.zero_grad()
-        optimizer5.zero_grad()
+
+        for p in sr_classif_critic.parameters():
+            p.requires_grad = True
+
+        for _ in range(1):
+            # SR loss
+            optimizer.zero_grad()
+            src_features = feature_extractor(x_source.cuda()).detach()
+            SR_src = SR(src_features)
+            SR_src_ = SR_src.detach()
+
+            dloss_real = sr_classif_critic(y_source.cuda()).mean()
+
+            dloss_fake = sr_classif_critic(SR_src_).mean()
+
+            gp = calculate_gradient_penalty(sr_classif_critic, y_source.cuda().data, SR_src_.data)
+            d_loss1 = dloss_fake - dloss_real + gp
+            d_loss1.backward()
+
+        for p in sr_classif_critic.parameters():
+            p.requires_grad = False
 
         src_features = feature_extractor(x_source.cuda())
         tgt_features = feature_extractor(x_target.cuda())
         xsource_sup = feature_extractor(x_source_sup.cuda())
         xtarget_sup = feature_extractor(x_target_sup.cuda())
-        d_loss = - sr_classif_critic(SR_src).mean() + sr_classif_critic(y_source.cuda()).mean()
+        SR_src = SR(src_features)
         vgg_fake = vgg(SR_src)
         vgg_real = vgg(y_source.detach())
-        vgg_loss = 0.01 * mse(vgg_fake, vgg_real) + d_loss + \
-                   0.001 * tvloss(SR_src, y_source.cuda().detach())
+        vgg_loss = 0.1 * mse(vgg_fake, vgg_real)
+        tv_loss = 0.0001 * tvloss(SR_src, y_source.cuda())
+        sr_loss = vgg_loss + tv_loss
 
-        ##domain loss
-
-        tgt_pred = domain_classifier(torch.cat((tgt_features, xtarget_sup), dim=0))
-        src_pred = domain_classifier(torch.cat((src_features, xsource_sup), dim=0))
+        # Domain loss
+        tgt_pred = domain_classifier(torch.cat((tgt_features, xtarget_sup), dim=0),constant)
+        src_pred = domain_classifier(torch.cat((src_features, xsource_sup), dim=0),constant)
         tgt_loss = domain_criterion(tgt_pred, torch.zeros_like(tgt_pred))
         src_loss = domain_criterion(src_pred, torch.ones_like(src_pred))
-        domain_loss = tgt_loss + src_loss
+        domain_loss = args.theta * (tgt_loss + src_loss)
 
-        ##Resolution Loss
+        # Resolution Loss
         batch_res_sup = torch.cat((xsource_sup, xtarget_sup), dim=0)
         batch_res_down = torch.cat((tgt_features, src_features), dim=0)
-        down_pred = resolution_classifier(batch_res_down)
-        up_pred = resolution_classifier(batch_res_sup)
+        down_pred = resolution_classifier(batch_res_down,constant)
+        up_pred = resolution_classifier(batch_res_sup,constant)
         down_loss = domain_criterion(down_pred, torch.zeros_like(down_pred))
         up_loss = domain_criterion(up_pred, torch.ones_like(up_pred))
-        res_loss = down_loss + up_loss
-        loss = vgg_loss + args.theta * (domain_loss + res_loss)
+        res_loss = args.theta * (down_loss + up_loss)
+
+        loss = sr_loss + domain_loss + res_loss
         loss.backward()
         optimizer.step()
-        optimizer3.step()
-        optimizer4.step()
-        optimizer5.step()
 
         return {'tgt_loss': tgt_loss.item(),
                 'src_loss': src_loss.item(),
-                'vgg_loss': vgg_loss.item(),
+                'sr_loss': sr_loss.item(),
                 'loss': loss.item(),
                 'dloss_real': dloss_real.item(),
                 'dloss_fake': dloss_fake.item(),
                 'GP': gp.item(),
-                'd_loss': d_loss.item(),
-                'down_loss': down_loss.item(),
-                'up_loss': up_loss.item(),
-                'dloss_1':d_loss1.item()
+                #'g_loss': g_loss.item(),
+                'res_down_loss': down_loss.item(),
+                'res_up_loss': up_loss.item(),
+                'vgg_loss': vgg_loss.item(),
+                'tv_loss': tv_loss.item()
                 }
 
     trainer = Engine(step)
-
 
     ret_objs = dict()
     ret_objs['trainer'] = trainer
@@ -162,7 +141,11 @@ def init(DEVICES):
     ret_objs['domain_classifier'] = domain_classifier
     ret_objs['resolution_classifier'] = resolution_classifier
     ret_objs['sr_classif_critic'] = sr_classif_critic
-    ret_objs['optimizer'] = optimizer
+    #ret_objs['optim_feature'] = optim_feature
+    #ret_objs['optim_domain_classif'] = optim_domain_classif
+    #ret_objs['optim_res_classif'] = optim_res_classif
+    ret_objs['optim'] = optimizer
+    #ret_objs['optim_sr_critic'] = optim_sr_critic
     ret_objs['loader'] = loader
 
     return ret_objs

@@ -25,22 +25,24 @@ CKPT_PREFIX = 'networks'
 def attach_decorators(trainer, SR, feature_extractor,
                       domain_classifier,
                       resolution_classifier, sr_classif_critic,
-                      optimizer, loader):
+                      optim,
+                      loader):
     timer = Timer(average=True)
 
     checkpoint_handler = ModelCheckpoint(args.output_dir + '/checkpoints/domain_adaptation_training/', 'training',
                                          save_interval=1, n_saved=300, require_empty=False,iteration=args.epoch_c)
 
-    monitoring_metrics = ['tgt_loss', 'src_loss', 'vgg_loss', 'loss', 'GP', 'd_loss', 'down_loss', 'up_loss','dloss_1']
+    monitoring_metrics = ['tgt_loss', 'src_loss', 'sr_loss', 'loss', 'GP', 'res_down_loss', 'res_up_loss','tv_loss','vgg_loss']
     RunningAverage(alpha=0.98, output_transform=lambda x: x['tgt_loss']).attach(trainer, 'tgt_loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['src_loss']).attach(trainer, 'src_loss')
-    RunningAverage(alpha=0.98, output_transform=lambda x: x['vgg_loss']).attach(trainer, 'vgg_loss')
+    RunningAverage(alpha=0.98, output_transform=lambda x: x['sr_loss']).attach(trainer, 'sr_loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['loss']).attach(trainer, 'loss')
     RunningAverage(alpha=0.98, output_transform=lambda x: x['GP']).attach(trainer, 'GP')
-    RunningAverage(alpha=0.98, output_transform=lambda x: x['d_loss']).attach(trainer, 'd_loss')
-    RunningAverage(alpha=0.98, output_transform=lambda x: x['down_loss']).attach(trainer, 'down_loss')
-    RunningAverage(alpha=0.98, output_transform=lambda x: x['up_loss']).attach(trainer, 'up_loss')
-    RunningAverage(alpha=0.98, output_transform=lambda x: x['dloss_1']).attach(trainer, 'dloss_1')
+    #RunningAverage(alpha=0.98, output_transform=lambda x: x['g_loss']).attach(trainer, 'g_loss')
+    RunningAverage(alpha=0.98, output_transform=lambda x: x['res_down_loss']).attach(trainer, 'res_down_loss')
+    RunningAverage(alpha=0.98, output_transform=lambda x: x['res_up_loss']).attach(trainer, 'res_up_loss')
+    RunningAverage(alpha=0.98, output_transform=lambda x: x['tv_loss']).attach(trainer, 'tv_loss')
+    RunningAverage(alpha=0.98, output_transform=lambda x: x['vgg_loss']).attach(trainer, 'vgg_loss')
 
     pbar = ProgressBar()
     pbar.attach(trainer, metric_names=monitoring_metrics)
@@ -49,7 +51,11 @@ def attach_decorators(trainer, SR, feature_extractor,
                               to_save={
                                   'feature_extractor': feature_extractor,
                                   'SR': SR,
-                                  'ADAM': optimizer,
+                                  #'optim_feature': optim_feature,
+                                  #'optim_domain_classif': optim_domain_classif,
+                                  #'optim_res_classif': optim_res_classif,
+                                  'optim': optim,
+                                  #'optim_sr_critic': optim_sr_critic,
                                   'domain_D': domain_classifier,
                                   'res_D': resolution_classifier,
                                   'sr_D': sr_classif_critic
@@ -122,10 +128,10 @@ def attach_decorators(trainer, SR, feature_extractor,
             checkpoint_handler(engine, {
                 'feature_extractor_{}'.format(engine.state.iteration): feature_extractor,
                 'SR_{}'.format(engine.state.iteration): SR,
-                'ADAM_{}'.format(engine.state.iteration): optimizer,
                 'DOMAIN_D_{}'.format(engine.state.iteration): domain_classifier,
                 'RES_D_{}'.format(engine.state.iteration): resolution_classifier,
-                'SR_D_{}'.format(engine.state.iteration): sr_classif_critic
+                'SR_D_{}'.format(engine.state.iteration): sr_classif_critic,
+                'OPTIM_{}'.format(engine.state.iteration): optim
             })
 
         else:
