@@ -109,7 +109,7 @@ def init():
         vgg_fake = vgg(fake)
         vgg_real = vgg(py)
         vgg_loss = criterion(vgg_fake, vgg_real)
-        vgg_loss = vgg_loss.mean()
+        vgg_loss = 0.1*vgg_loss.mean()
         vgg_loss.backward()
         optimizerG.step()
 
